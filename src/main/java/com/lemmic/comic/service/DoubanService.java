@@ -38,7 +38,7 @@ public class DoubanService {
     private static final Pattern PATTERN_DOUBAN_COMIC_ITEM = Pattern.compile("(.+)(\\d+)[ ]+(\\d+)[ ]+([\\d\\-]+)");
 
     static {
-        BasicHeader header = new BasicHeader("Host", "Host: movie.douban.com\n" +
+        BasicHeader header = new BasicHeader("", "Host: movie.douban.com\n" +
                 "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:58.0) Gecko/20100101 Firefox/58.0\n" +
                 "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\n" +
                 "Accept-Language: zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2\n" +
@@ -55,7 +55,6 @@ public class DoubanService {
             HttpGet get = new HttpGet("https://movie.douban.com/tag/动画?start=" + start + "&type=S");
             HttpResponse response = client.execute(get);
             Document document = Jsoup.parse(response.getEntity().getContent(), "UTF-8", "");
-            System.out.println(document.text());
             Elements comicElements = document.select(".item");
             List<IComic> comics = new ArrayList<IComic>();
             for (Element comicElement : comicElements) {
