@@ -1,7 +1,7 @@
 package com.lemmic.comic.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
+import com.lemmic.comic.math.GuassUtil;
 import com.lemmic.comic.model.DoubanComic;
 import com.lemmic.comic.model.IComic;
 import java.io.BufferedReader;
@@ -11,6 +11,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -125,13 +126,14 @@ public class DoubanService {
         return null;
     }
 
-    public static void main(String[] args) throws Exception {
-        BufferedWriter writer = new BufferedWriter(new FileWriter("1.comic"));
+    public static List<IComic> loadNewDate(String fileName) throws Exception {
+        BufferedWriter writer = new BufferedWriter(new FileWriter(fileName));
         DoubanService service = new DoubanService();
         List<IComic> comics = new ArrayList<IComic>();
         for (int i = 0; i < 2000; i += 20) {
             comics.addAll(service.loadComic(i));
             System.out.println("load start=" + i + ",current size=" + comics.size());
+            Thread.sleep((int) (Math.random() * 3000) + 2000);
         }
         comics.sort(new Comparator<IComic>() {
             public int compare(IComic o1, IComic o2) {
@@ -148,21 +150,50 @@ public class DoubanService {
         }
         writer.flush();
         writer.close();
-
-        ObjectMapper mapper = new ObjectMapper();
-        String json = mapper.writeValueAsString(comics);
-        FileWriter fileWriter = new FileWriter("1.json");
-        fileWriter.write(json);
-        fileWriter.flush();
-        fileWriter.close();
+        return comics;
     }
 
-    public static void main1(String[] args) throws Exception {
-        BufferedReader reader = new BufferedReader(new FileReader("1.comic"));
+    //千与千寻 ###92###730246###2001-07-20
+    public static void main(String[] args) throws Exception {
+        loadNewDate("3.comic");
+        BufferedReader reader = new BufferedReader(new FileReader("3.comic"));
         String line = null;
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        List<IComic> comics = new ArrayList<>();
         while ((line = reader.readLine()) != null) {
-            String[] arr = line.split("[ \t]+");
-            System.out.println(arr.length);
+            String[] arr = line.split("###");
+            if (arr.length == 0) {
+                continue;
+            }
+            String name = arr[0];
+            int score = Integer.parseInt(arr[1]);
+            int count = Integer.parseInt(arr[2]);
+            Date time = dateFormat.parse(arr[3]);
+            DoubanComic comic = new DoubanComic(score, count, name, time);
+            countRealScore(comic);
+            comics.add(comic);
         }
+        comics.sort(new Comparator<IComic>() {
+            @Override
+            public int compare(IComic o1, IComic o2) {
+                return -((DoubanComic) o1).getRealScore() + ((DoubanComic) o2).getRealScore();
+            }
+
+        });
+        for (int i = 0; i < comics.size(); i++) {
+            System.out.println(i + ":" + comics.get(i));
+        }
+    }
+
+    private static void countRealScore(DoubanComic comic) {
+        Calendar calendarTime = new Calendar.Builder().setInstant(comic.time()).build();
+        Calendar calendarNow = new Calendar.Builder().setInstant(System.currentTimeMillis()).build();
+        int month2Now = 12 * (calendarNow.get(Calendar.YEAR) - calendarTime.get(Calendar.YEAR))
+                + calendarNow.get(Calendar.MONTH) - calendarTime.get(Calendar.MONTH) + 1;
+        if (month2Now < 12) {
+            return;
+        }
+        double p = GuassUtil.getP(month2Now);
+        comic.setRealScore((int) (comic.count() * (1.0 / p)) * comic.score());
     }
 }

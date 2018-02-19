@@ -11,6 +11,10 @@ public class DoubanComic extends AbstractComic {
     private int count;
     private String name;
     private Date time;
+    private int realScore;
+
+    public DoubanComic() {
+    }
 
     public DoubanComic(int score, int count, String name, Date time) {
         this.score = score;
@@ -36,6 +40,14 @@ public class DoubanComic extends AbstractComic {
         return time;
     }
 
+    public int getRealScore() {
+        return realScore;
+    }
+
+    public void setRealScore(int realScore) {
+        this.realScore = realScore;
+    }
+
     public void setScore(int score) {
         this.score = score;
     }
@@ -56,9 +68,9 @@ public class DoubanComic extends AbstractComic {
     public String toString() {
         if (time != null) {
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-            return name + "###" + score + "" + count + "###" + dateFormat.format(time);
+            return name + "###" + score + "###" + count + "###" + getRealScore() + "###" + dateFormat.format(time);
         }
-        return name + "###" + score + "###" + count + "###" + "1970-01-01";
+        return name + "###" + score + "###" + count + "###" + getRealScore() + "###" + "1970-01-01";
 
     }
 }
